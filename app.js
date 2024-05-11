@@ -3,8 +3,14 @@ $(document).ready(() => {
   const rightPaddleDiv = $("#rightPaddle");
   const ball = $("#ball");
 
-  leftPaddleDiv.css("top", $(document).height() / 2 - leftPaddleDiv.height() / 2);
-  rightPaddleDiv.css("top", $(document).height() / 2 - rightPaddleDiv.height() / 2);
+  leftPaddleDiv.css(
+    "top",
+    $(document).height() / 2 - leftPaddleDiv.height() / 2
+  );
+  rightPaddleDiv.css(
+    "top",
+    $(document).height() / 2 - rightPaddleDiv.height() / 2
+  );
 
   let leftPaddle = {
     width: 100,
@@ -47,114 +53,125 @@ $(document).ready(() => {
   };
 
   function ballControl() {
-    let right = $(document).width() - gameBall.width;
+    const screenWidth = $(document).width();
+    const screenHeight = $(document).height();
+
+    const ballRightLimit = screenWidth - gameBall.width;
+    const ballBottomLimit = screenHeight - gameBall.height;
 
     // Top oyun sahasında mı diye kontrol
-    if (gameBall.left >= 0 && gameBall.left <= right) {
+    if (gameBall.left >= 0 && gameBall.left <= ballRightLimit) {
       gameBall.left += gameBall.speed;
-      ball.css("left", gameBall.left);
       gameBall.top += gameBall.speedY;
-      ball.css("top", gameBall.top);
+      ball.css({ left: gameBall.left, top: gameBall.top });
+
+      // Top paddle'a çarpınca
+      if (
+        gameBall.left <= leftPaddle.width + leftPaddle.left &&
+        gameBall.speed < 0
+      ) {
+        if (
+          leftPaddle.top <= gameBall.top + gameBall.height &&
+          leftPaddle.bottom >= gameBall.top
+        ) {
+          ballBounce(leftPaddle);
+        }
+      }
+
+      if (
+        gameBall.left >= rightPaddle.left - gameBall.width &&
+        gameBall.speed > 0
+      ) {
+        if (
+          rightPaddle.top <= gameBall.top + gameBall.height &&
+          rightPaddle.bottom >= gameBall.top
+        ) {
+          ballBounce(rightPaddle);
+        }
+      }
     } else {
       // GAME OVER
       clearInterval(gameBall.move);
     }
 
-    // Top paddle'a çarpınca
-    if (gameBall.left <= leftPaddle.width + leftPaddle.left) {
-      if (
-        leftPaddle.top <= gameBall.top + gameBall.height &&
-        leftPaddle.bottom >= gameBall.top &&
-        gameBall.speed < 0
-      ) {
-        console.log("1 if");
-        ballBounce();
-      } 
-      else if (gameBall.left > leftPaddle.left) {
-        console.log("3 if");
-        if (gameBall.top + gameBall.height >= leftPaddle.top) {
-          console.log("4 if");
-        }
-      }
-    }
-
-    if (
-      gameBall.top <= 0 ||
-      gameBall.top >= $(document).height() - gameBall.height
-    ) {
+    // Top oyun sahasının üst veya alt sınırlarına çarpınca
+    if (gameBall.top <= 0 || gameBall.top >= ballBottomLimit) {
       gameBall.speedY *= -1;
       gameBall.top += gameBall.speedY;
       ball.css("top", gameBall.top);
     }
   }
 
-  function ballBounce() {
-    console.log(
-      "ballTop: " +
-        ball.position().top +
-        "\nPaddleTop: " +
-        leftPaddleDiv.position().top +
-        "\n Eksi: " +
-        (150 - (ball.position().top - leftPaddleDiv.position().top)) +
-        "\n Yüzde: " +
-        ((150 - (ball.position().top - leftPaddleDiv.position().top)) / 150) *
-          100
+  function ballBounce(paddle) {
+    const speedRatio = 20;
+    const verticalDistance = paddle.height / 2 - (gameBall.top - paddle.top);
+    let newSpeedY =
+      (verticalDistance / (paddle.height / 2)) * (100 / -speedRatio);
+
+    newSpeedY = Math.min(
+      Math.max(newSpeedY, -100 / speedRatio),
+      100 / speedRatio
     );
-
-    // BU KISIM ENEMY GÖRE DE YAPILACAK
-    let testInt =
-      -(
-        ((150 - (ball.position().top - leftPaddleDiv.position().top)) / 150) *
-        100
-      ) / 15;
-
-    if (testInt > 100 / 15) testInt = 100 / 15;
-    if (testInt < 100 / -15) testInt = 100 / -15;
 
     gameBall.left -= gameBall.speed;
     gameBall.speed *= -1;
     ball.css("left", gameBall.left);
-    gameBall.top -= gameBall.speedY;
-    gameBall.speedY = testInt;
-    ball.css("top", gameBall.top);
-    
-  }
 
+    gameBall.top -= gameBall.speedY;
+    gameBall.speedY = newSpeedY;
+    ball.css("top", gameBall.top);
+  }
 
   function paddleControl(direction, paddle) {
-    if (paddle.top <= 0) {
-      paddle.top = 1;
-    } else if (paddle.top + paddle.height >= $(document).height()) {
-      paddle.top = $(document).height() - paddle.height - 1;
-    } else {
-      let move = direction == "top" ? -paddle.speed : paddle.speed;
-      paddle.top += move;
-    }
-    paddle.bottom = paddle.top + paddle.height;
-    if(paddle == leftPaddle)
-    leftPaddleDiv.css("top", paddle.top);
-    else 
-    rightPaddleDiv.css("top", paddle.top);
-  }
+    const paddleTopLimit = 0;
+    const paddleBottomLimit = $(document).height();
+    let newTop;
 
+    if (direction === "top") {
+      newTop = Math.max(paddleTopLimit, paddle.top - paddle.speed);
+    } else {
+      newTop = Math.min(
+        paddleBottomLimit - paddle.height,
+        paddle.top + paddle.speed
+      );
+    }
+
+    paddle.top = newTop;
+    paddle.bottom = newTop + paddle.height;
+
+    const paddleDiv = paddle === leftPaddle ? leftPaddleDiv : rightPaddleDiv;
+    paddleDiv.css("top", newTop);
+  }
 
   function keyControl(e) {
     const isKeyDown = e.type === "keydown" && !e.repeat;
     const isKeyUp = e.type === "keyup";
-  
+
     if (isKeyDown) {
       if (e.key === "w") {
         clearInterval(leftPaddle.topTime);
-        leftPaddle.topTime = setInterval(() => paddleControl("top", leftPaddle), 0.2);
+        leftPaddle.topTime = setInterval(
+          () => paddleControl("top", leftPaddle),
+          0.2
+        );
       } else if (e.key === "s") {
         clearInterval(leftPaddle.bottomTime);
-        leftPaddle.bottomTime = setInterval(() => paddleControl("bottom", leftPaddle), 0.2);
+        leftPaddle.bottomTime = setInterval(
+          () => paddleControl("bottom", leftPaddle),
+          0.2
+        );
       } else if (e.key === "ArrowUp") {
         clearInterval(rightPaddle.topTime);
-        rightPaddle.topTime = setInterval(() => paddleControl("top", rightPaddle), 0.2);
+        rightPaddle.topTime = setInterval(
+          () => paddleControl("top", rightPaddle),
+          0.2
+        );
       } else if (e.key === "ArrowDown") {
         clearInterval(rightPaddle.bottomTime);
-        rightPaddle.bottomTime = setInterval(() => paddleControl("bottom", rightPaddle), 0.2);
+        rightPaddle.bottomTime = setInterval(
+          () => paddleControl("bottom", rightPaddle),
+          0.2
+        );
       }
     } else if (isKeyUp) {
       switch (e.key) {
