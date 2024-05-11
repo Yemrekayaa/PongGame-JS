@@ -1,0 +1,53 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.game-area{
+    background-color: #343434;
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    margin-left: auto;
+    margin-right: auto;
+    top:0;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+}
+
+#centerLine{
+    position: absolute;
+    height: 100vh;
+    width: 20px;
+    top: 0;
+    left: calc(50% - 10px);
+    background-color: rgba(19, 10, 7, 0.1);
+}
+
+#paddlePlayer{
+    width: 25px;
+    height: 300px;
+    position: absolute;
+    background-color: darkmagenta;
+    left: 20px;
+}
+
+#paddleEnemy{
+    width: 25px;
+    height: 300px;
+    position: absolute;
+    background-color: darkmagenta;
+    left: calc(100% - 25px);
+}
+
+#ball{
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background-color: darkcyan;
+    top: 50%;
+    left: 50%;
+    
+}
+
