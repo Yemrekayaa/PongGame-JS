@@ -25,20 +25,20 @@ body{
     background-color: rgba(19, 10, 7, 0.1);
 }
 
-#paddlePlayer{
-    width: 25px;
+#leftPaddle{
+    width: 100px;
     height: 300px;
     position: absolute;
     background-color: darkmagenta;
-    left: 20px;
+    left: 25px;
 }
 
-#paddleEnemy{
-    width: 25px;
+#rightPaddle{
+    width: 100px;
     height: 300px;
     position: absolute;
     background-color: darkmagenta;
-    left: calc(100% - 25px);
+    left: calc(100% - 125px);
 }
 
 #ball{

@@ -1,33 +1,36 @@
 $(document).ready(() => {
-  const paddlePlayer = $("#paddlePlayer");
-  const paddleEnemy = $("#paddleEnemy");
+  const leftPaddleDiv = $("#leftPaddle");
+  const rightPaddleDiv = $("#rightPaddle");
   const ball = $("#ball");
 
-  paddlePlayer.css("top", $(document).height() / 2 - paddlePlayer.height() / 2);
-  paddleEnemy.css("top", 10000);
+  leftPaddleDiv.css("top", $(document).height() / 2 - leftPaddleDiv.height() / 2);
+  rightPaddleDiv.css("top", $(document).height() / 2 - rightPaddleDiv.height() / 2);
 
-  let myPaddle = {
-    width: 25,
+  let leftPaddle = {
+    width: 100,
     height: 300,
-    top: $(document).height() / 2 - paddlePlayer.height() / 2,
+    top: $(document).height() / 2 - leftPaddleDiv.height() / 2,
     bottom:
-      paddlePlayer.height() +
+      leftPaddleDiv.height() +
       $(document).height() / 2 -
-      paddlePlayer.height() / 2,
-    left: 20,
+      leftPaddleDiv.height() / 2,
+    left: 25,
     speed: 2,
     isStart: false,
     topTime: null,
     bottomTime: null,
   };
 
-  let enemyPaddle = {
-    width: 25,
-    height: 10000,
-    top: 0,
-    bottom: 100000,
-    left: $(document).width() - paddleEnemy.width(),
-    speed: 1,
+  let rightPaddle = {
+    width: 100,
+    height: 300,
+    top: $(document).height() / 2 - rightPaddleDiv.height() / 2,
+    bottom:
+      leftPaddleDiv.height() +
+      $(document).height() / 2 -
+      leftPaddleDiv.height() / 2,
+    left: $(document).width() - 125,
+    speed: 2,
     isStart: false,
     topTime: null,
     bottomTime: null,
@@ -38,89 +41,127 @@ $(document).ready(() => {
     height: 20,
     left: $(document).width() / 2,
     top: $(document).height() / 2,
-    speed: -3,
+    speed: -4,
     speedY: 0,
     move: null,
   };
 
-  function paddleControl(direction) {
-    if (myPaddle.top <= 0) {
-      myPaddle.top = 1;
-    } else if (myPaddle.top + myPaddle.height >= $(document).height()) {
-      myPaddle.top = $(document).height() - myPaddle.height - 1;
-    } else {
-      let move = direction == "top" ? -myPaddle.speed : myPaddle.speed;
-      myPaddle.top += move;
-    }
-    myPaddle.bottom = myPaddle.top + myPaddle.height;
-    paddlePlayer.css("top", myPaddle.top);
-  }
-
   function ballControl() {
     let right = $(document).width() - gameBall.width;
 
-
     // Top oyun sahasında mı diye kontrol
-    if(gameBall.left <= 0 || gameBall.left >= right){
-        clearInterval(gameBall.move)
+    if (gameBall.left >= 0 && gameBall.left <= right) {
+      gameBall.left += gameBall.speed;
+      ball.css("left", gameBall.left);
+      gameBall.top += gameBall.speedY;
+      ball.css("top", gameBall.top);
     } else {
-        gameBall.left += gameBall.speed;
-        ball.css("left", gameBall.left); 
-        gameBall.top += gameBall.speedY;
-        ball.css("top", gameBall.top);
-    }
-    if(myPaddle.top <= gameBall.top + gameBall.height && myPaddle.bottom >= gameBall.top && gameBall.speed < 0){
-      console.log("aynen öyle");
+      // GAME OVER
+      clearInterval(gameBall.move);
     }
 
-    if (gameBall.left <= myPaddle.width + myPaddle.left || gameBall.left >= right - myPaddle.width) {
-         if (myPaddle.top <= gameBall.top + gameBall.height && myPaddle.bottom >= gameBall.top && gameBall.speed < 0) {;
-            ballBounce();
-          } 
-          else if (enemyPaddle.top <= gameBall.top && enemyPaddle.bottom >= gameBall.top && gameBall.speed > 0){
-            ballBounce();
-          }
+    // Top paddle'a çarpınca
+    if (gameBall.left <= leftPaddle.width + leftPaddle.left) {
+      if (
+        leftPaddle.top <= gameBall.top + gameBall.height &&
+        leftPaddle.bottom >= gameBall.top &&
+        gameBall.speed < 0
+      ) {
+        console.log("1 if");
+        ballBounce();
+      } 
+      else if (gameBall.left > leftPaddle.left) {
+        console.log("3 if");
+        if (gameBall.top + gameBall.height >= leftPaddle.top) {
+          console.log("4 if");
+        }
+      }
     }
-    
-     
-    if (gameBall.top <= 0 || gameBall.top >= $(document).height() - gameBall.height) {
-        gameBall.speedY *= -1;
-        gameBall.top += gameBall.speedY;
-        ball.css("top", gameBall.top);
+
+    if (
+      gameBall.top <= 0 ||
+      gameBall.top >= $(document).height() - gameBall.height
+    ) {
+      gameBall.speedY *= -1;
+      gameBall.top += gameBall.speedY;
+      ball.css("top", gameBall.top);
     }
-
-
-
-
   }
 
-  function ballBounce(){
-    console.log("ballTop: " + ball.position().top 
-    + "\nPaddleTop: " + paddlePlayer.position().top
-    + "\n Eksi: " + (150 - (ball.position().top - paddlePlayer.position().top))
-    + "\n Yüzde: " + (((150 - (ball.position().top - paddlePlayer.position().top)) / 150) * 100)
+  function ballBounce() {
+    console.log(
+      "ballTop: " +
+        ball.position().top +
+        "\nPaddleTop: " +
+        leftPaddleDiv.position().top +
+        "\n Eksi: " +
+        (150 - (ball.position().top - leftPaddleDiv.position().top)) +
+        "\n Yüzde: " +
+        ((150 - (ball.position().top - leftPaddleDiv.position().top)) / 150) *
+          100
     );
 
     // BU KISIM ENEMY GÖRE DE YAPILACAK
-    let testInt = -(((150 - (ball.position().top - paddlePlayer.position().top)) / 150) * 100) / 50;
+    let testInt =
+      -(
+        ((150 - (ball.position().top - leftPaddleDiv.position().top)) / 150) *
+        100
+      ) / 15;
+
+    if (testInt > 100 / 15) testInt = 100 / 15;
+    if (testInt < 100 / -15) testInt = 100 / -15;
 
     gameBall.left -= gameBall.speed;
     gameBall.speed *= -1;
     ball.css("left", gameBall.left);
+    gameBall.top -= gameBall.speedY;
     gameBall.speedY = testInt;
+    ball.css("top", gameBall.top);
+    
   }
+
+  // Control Paddle
+  function paddleControl(direction, paddle) {
+    if (paddle.top <= 0) {
+      paddle.top = 1;
+    } else if (paddle.top + paddle.height >= $(document).height()) {
+      paddle.top = $(document).height() - paddle.height - 1;
+    } else {
+      let move = direction == "top" ? -paddle.speed : paddle.speed;
+      paddle.top += move;
+    }
+    paddle.bottom = paddle.top + paddle.height;
+    if(paddle == leftPaddle)
+    leftPaddleDiv.css("top", paddle.top);
+    else 
+    rightPaddleDiv.css("top", paddle.top);
+  }
+
 
   function keyControl(e) {
     if (e.type == "keydown" && !e.repeat) {
       if (e.key == "w") {
-        myPaddle.topTime = setInterval(() => paddleControl("top"), 0.2);
-      } else if (e.key == "s") {
-        myPaddle.bottomTime = setInterval(() => paddleControl("bottom"), 0.2);
+        clearInterval(leftPaddle.topTime);
+        clearInterval(leftPaddle.bottomTime);
+        leftPaddle.topTime = setInterval(() => paddleControl("top",leftPaddle), 0.2);
+
       }
-    } else if ((e.key == "w" || e.key === "s") && e.type == "keyup") {
-      clearInterval(myPaddle.topTime);
-      clearInterval(myPaddle.bottomTime);
-    }
+      if (e.key == "s") {
+        clearInterval(leftPaddle.topTime);
+        clearInterval(leftPaddle.bottomTime);
+        leftPaddle.bottomTime = setInterval(() => paddleControl("bottom",leftPaddle), 0.2);
+      }
+      if (e.which == 38) {
+        clearInterval(rightPaddle.topTime);
+        clearInterval(rightPaddle.bottomTime);
+        rightPaddle.topTime = setInterval(() => paddleControl("top",rightPaddle), 0.2);
+      }
+      if (e.which == 40) {
+        clearInterval(rightPaddle.topTime);
+        clearInterval(rightPaddle.bottomTime);
+        rightPaddle.bottomTime = setInterval(() => paddleControl("bottom",rightPaddle), 0.2);
+      }
+    } 
   }
 
   document.addEventListener("keydown", keyControl);
@@ -132,5 +173,4 @@ $(document).ready(() => {
   }
 
   $(document).on("click", startGame);
-   
 });
