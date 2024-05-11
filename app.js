@@ -120,7 +120,7 @@ $(document).ready(() => {
     
   }
 
-  // Control Paddle
+
   function paddleControl(direction, paddle) {
     if (paddle.top <= 0) {
       paddle.top = 1;
@@ -139,29 +139,39 @@ $(document).ready(() => {
 
 
   function keyControl(e) {
-    if (e.type == "keydown" && !e.repeat) {
-      if (e.key == "w") {
+    const isKeyDown = e.type === "keydown" && !e.repeat;
+    const isKeyUp = e.type === "keyup";
+  
+    if (isKeyDown) {
+      if (e.key === "w") {
         clearInterval(leftPaddle.topTime);
+        leftPaddle.topTime = setInterval(() => paddleControl("top", leftPaddle), 0.2);
+      } else if (e.key === "s") {
         clearInterval(leftPaddle.bottomTime);
-        leftPaddle.topTime = setInterval(() => paddleControl("top",leftPaddle), 0.2);
-
-      }
-      if (e.key == "s") {
-        clearInterval(leftPaddle.topTime);
-        clearInterval(leftPaddle.bottomTime);
-        leftPaddle.bottomTime = setInterval(() => paddleControl("bottom",leftPaddle), 0.2);
-      }
-      if (e.which == 38) {
+        leftPaddle.bottomTime = setInterval(() => paddleControl("bottom", leftPaddle), 0.2);
+      } else if (e.key === "ArrowUp") {
         clearInterval(rightPaddle.topTime);
+        rightPaddle.topTime = setInterval(() => paddleControl("top", rightPaddle), 0.2);
+      } else if (e.key === "ArrowDown") {
         clearInterval(rightPaddle.bottomTime);
-        rightPaddle.topTime = setInterval(() => paddleControl("top",rightPaddle), 0.2);
+        rightPaddle.bottomTime = setInterval(() => paddleControl("bottom", rightPaddle), 0.2);
       }
-      if (e.which == 40) {
-        clearInterval(rightPaddle.topTime);
-        clearInterval(rightPaddle.bottomTime);
-        rightPaddle.bottomTime = setInterval(() => paddleControl("bottom",rightPaddle), 0.2);
+    } else if (isKeyUp) {
+      switch (e.key) {
+        case "w":
+          clearInterval(leftPaddle.topTime);
+          break;
+        case "s":
+          clearInterval(leftPaddle.bottomTime);
+          break;
+        case "ArrowUp":
+          clearInterval(rightPaddle.topTime);
+          break;
+        case "ArrowDown":
+          clearInterval(rightPaddle.bottomTime);
+          break;
       }
-    } 
+    }
   }
 
   document.addEventListener("keydown", keyControl);
