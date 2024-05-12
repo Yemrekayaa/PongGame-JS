@@ -1,7 +1,11 @@
 $(document).ready(() => {
+  const gameArea = $(".game-area");
   const leftPaddleDiv = $("#leftPaddle");
   const rightPaddleDiv = $("#rightPaddle");
   const ball = $("#ball");
+  const leftScore = $("#leftScore");
+  const rightScore = $("#rightScore");
+
 
   leftPaddleDiv.css(
     "top",
@@ -12,8 +16,12 @@ $(document).ready(() => {
     $(document).height() / 2 - rightPaddleDiv.height() / 2
   );
 
+  leftScore.css("right", $(document).width() / 2 + 50);
+  rightScore.css("left", $(document).width() / 2 + 50);
+
+
   let leftPaddle = {
-    width: 100,
+    width: 15,
     height: 300,
     top: $(document).height() / 2 - leftPaddleDiv.height() / 2,
     bottom:
@@ -21,33 +29,35 @@ $(document).ready(() => {
       $(document).height() / 2 -
       leftPaddleDiv.height() / 2,
     left: 25,
-    speed: 2,
+    speed: 3,
     isStart: false,
     topTime: null,
     bottomTime: null,
+    score: 0
   };
 
   let rightPaddle = {
-    width: 100,
+    width: 15,
     height: 300,
     top: $(document).height() / 2 - rightPaddleDiv.height() / 2,
     bottom:
       leftPaddleDiv.height() +
       $(document).height() / 2 -
       leftPaddleDiv.height() / 2,
-    left: $(document).width() - 125,
-    speed: 2,
+    left: $(document).width() - 40,
+    speed: 3,
     isStart: false,
     topTime: null,
     bottomTime: null,
+    score : 0
   };
 
   let gameBall = {
     width: 20,
     height: 20,
-    left: $(document).width() / 2,
-    top: $(document).height() / 2,
-    speed: -4,
+    left: $(document).width() / 2 - ball.width() / 2,
+    top: $(document).height() / 2 - ball.height() / 2,
+    speed: 5,
     speedY: 0,
     move: null,
   };
@@ -90,8 +100,8 @@ $(document).ready(() => {
         }
       }
     } else {
-      // GAME OVER
-      clearInterval(gameBall.move);
+      endGame(gameBall.left <= 0 ? rightPaddle : leftPaddle)
+
     }
 
     // Top oyun sahasının üst veya alt sınırlarına çarpınca
@@ -102,12 +112,14 @@ $(document).ready(() => {
     }
   }
 
+
   function ballBounce(paddle) {
-    const speedRatio = 20;
-    const verticalDistance = paddle.height / 2 - (gameBall.top - paddle.top);
+    const speedRatio = 15;
+    const verticalDistance = paddle.height / 2 - ((gameBall.top + gameBall.height/2) - paddle.top);
+    console.log(verticalDistance);
     let newSpeedY =
       (verticalDistance / (paddle.height / 2)) * (100 / -speedRatio);
-
+    console.log(newSpeedY);
     newSpeedY = Math.min(
       Math.max(newSpeedY, -100 / speedRatio),
       100 / speedRatio
@@ -189,15 +201,113 @@ $(document).ready(() => {
           break;
       }
     }
+
+    if(e.key == "p"){
+      clearInterval(gameBall.move);
+    }
   }
 
   document.addEventListener("keydown", keyControl);
   document.addEventListener("keyup", keyControl);
 
-  function startGame() {
-    console.log("başladı");
-    gameBall.move = setInterval(() => ballControl(), 0.2);
+  function mainMenu(){
+    const mainMenuArea = $("<div />")
+    .css({
+      "backgroundColor": "rgba(0, 0, 0, 0.3)",
+      "width": "100vw",
+      "height": "100vh",
+      "position": "absolute",
+      "z-index": "1"
+    }).insertBefore(gameArea);
+
+    const startGameButton = $("<button />").css({
+      "backgroundColor": "#343434",
+      "width": "400px",
+      "height": "100px",
+      "position": "relative",
+      "border": "4px solid magenta",
+      "top": "calc(50% - 70px)",
+      "left": "calc(50% - 200px)",
+      "font-size": "50px",
+      "color": "magenta"
+    }).text("Start Game")
+    .appendTo(mainMenuArea);
+
+    startGameButton.on("click",() => {
+      gameBall.move = setInterval(() => ballControl(), 0.2);
+      mainMenuArea.css("display","none");
+    });
+
+    const controlCSS = {
+        "backgroundColor": "#343434",
+        "position": "absolute",
+        "width": "100px",
+        "height": "110px",
+        "color": "magenta",
+        "font-size": "100px",
+        "border": "8px solid magenta",
+        "padding": "10px 20px",
+        "text-align": "center"
+    }
+
+    const leftControlUp = $("<div />")
+    .css(controlCSS)
+    .css({
+      "top": "calc(50% - 200px)",
+      "left": "100px"
+    })
+    .text("W")
+    .appendTo(mainMenuArea);
+
+    const leftControlDown = $("<div />")
+    .css(controlCSS)
+    .css({
+      "top": "calc(50% + 100px)",
+      "left": "100px"
+    }).text("S").appendTo(mainMenuArea);
+    
+    const rightControlUp = $("<div />")
+    .css(controlCSS)
+    .css({
+      "top": "calc(50% - 200px)",
+      "right": "100px",
+      "font-size": "80px"
+    }).text("↑").appendTo(mainMenuArea);
+
+    const rightControlDown = $("<div />")
+    .css(controlCSS)
+    .css({
+      "top": "calc(50% + 100px)",
+      "right": "100px",
+      "font-size": "80px"
+    }).text("↓").appendTo(mainMenuArea);
   }
 
-  $(document).on("click", startGame);
+  function endGame(winnerPaddle){
+    clearInterval(gameBall.move);
+  
+    winnerPaddle.score++; 
+    const paddleTop = ($(document).height() / 2) - (leftPaddle.height / 2);
+    leftPaddle.top = paddleTop;
+    leftPaddle.bottom = paddleTop + leftPaddle.height;
+    leftPaddleDiv.css("top", paddleTop);
+    
+    rightPaddle.top = paddleTop;
+    rightPaddle.bottom = paddleTop + rightPaddle.height;
+    rightPaddleDiv.css("top", paddleTop);
+    
+    const ballTop = ($(document).height() / 2) - gameBall.height / 2;
+    const ballLeft = ($(document).width() / 2) - gameBall.width / 2;
+    gameBall.top = ballTop;
+    gameBall.left = ballLeft;
+    gameBall.speedY = 0;
+    ball.css({ "top": ballTop, "left": ballLeft });
+    leftScore.text(leftPaddle.score);
+    rightScore.text(rightPaddle.score);
+    gameBall.move = setInterval(ballControl, 0.2); 
+  }
+
+  
+  mainMenu();
+
 });
